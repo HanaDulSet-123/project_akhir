@@ -1,9 +1,12 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:tugas_ujk/api/endpoint/endpoint.dart';
 import 'package:tugas_ujk/models/absen_checkin_model.dart';
 import 'package:tugas_ujk/models/absen_checkout_model.dart';
+import 'package:tugas_ujk/models/absen_history_model.dart';
+import 'package:tugas_ujk/models/absen_stats_model.dart';
 import 'package:tugas_ujk/models/absen_today_model.dart';
 import 'package:tugas_ujk/shared_preferenced/shared_preferenced.dart';
 
@@ -123,6 +126,89 @@ class AbsenService {
     } catch (e) {
       print("Error Get Absen Today: $e");
       return null;
+    }
+  }
+
+  /// Absen Stats
+  static Future<AbsenStatsModel?> getAbsenStats({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final token = await PreferenceHandler.getToken();
+
+      final String formattedStartDate = DateFormat(
+        'yyyy-MM-dd',
+      ).format(startDate);
+      final String formattedEndDate = DateFormat('yyyy-MM-dd').format(endDate);
+
+      final url = Uri.parse(
+        "${Endpoint.absenStats}?start=$formattedStartDate&end=$formattedEndDate",
+      );
+
+      final response = await http.get(
+        url,
+        headers: {
+          "Accept": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        return AbsenStatsModel.fromJson(jsonResponse);
+      } else {
+        print("Get Absen Stats Failed: ${response.body}");
+        return null;
+      }
+    } catch (e) {
+      print("Error Get Absen Stats: $e");
+      return null;
+    }
+  }
+
+  // ===============================================
+  // ===== FUNGSI BARU UNTUK RIWAYAT ABSENSI =====
+  // ===============================================
+
+  /// Absen History
+  static Future<AbsenHistoryModel> getAbsenHistory({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final token = await PreferenceHandler.getToken();
+
+      // Format tanggal ke string yyyy-MM-dd
+      final String formattedStartDate = DateFormat(
+        'yyyy-MM-dd',
+      ).format(startDate);
+      final String formattedEndDate = DateFormat('yyyy-MM-dd').format(endDate);
+
+      // Bangun URL lengkap dengan parameter tanggal
+      final url = Uri.parse(
+        "${Endpoint.historyAbsen}?start=$formattedStartDate&end=$formattedEndDate",
+      );
+
+      final response = await http.get(
+        url,
+        headers: {
+          "Accept": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Jika berhasil, parse JSON dan kembalikan model
+        return AbsenHistoryModel.fromJson(jsonDecode(response.body));
+      } else {
+        // Jika gagal, lemparkan error dengan pesan dari server
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? 'Gagal memuat riwayat absensi');
+      }
+    } catch (e) {
+      // Tangkap error lain (misal: tidak ada koneksi) dan lemparkan kembali
+      throw Exception('Terjadi kesalahan: $e');
     }
   }
 }

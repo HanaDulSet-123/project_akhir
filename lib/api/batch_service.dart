@@ -4,7 +4,6 @@ import 'package:tugas_ujk/models/list_batch_model.dart';
 import 'package:tugas_ujk/shared_preferenced/shared_preferenced.dart';
 
 class BatchService {
-  /// Fetch semua cinema
   static Future<List<Datum>> fetchbatch() async {
     final url = Uri.parse(Endpoint.batch);
     final token = await PreferenceHandler.getToken();

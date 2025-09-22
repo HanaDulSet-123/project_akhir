@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+// Ganti dengan path project Anda yang benar
 import 'package:tugas_ujk/api/absen_Service.dart';
 import 'package:tugas_ujk/models/absen_checkin_model.dart';
+import 'package:tugas_ujk/models/absen_checkout_model.dart';
 
 class MapCheckInPage extends StatefulWidget {
   const MapCheckInPage({super.key});
@@ -17,236 +19,324 @@ class MapCheckInPage extends StatefulWidget {
 class _MapCheckInPageState extends State<MapCheckInPage> {
   Map<String, dynamic>? _absenTodayData;
   GoogleMapController? _mapController;
-  LatLng _currentPosition = const LatLng(-6.200000, 106.816666);
+  LatLng _currentPosition = const LatLng(
+    -6.200000,
+    106.816666,
+  ); // Default Jakarta
   Marker? _marker;
   String _currentAddress = "Mendapatkan lokasi...";
+  bool _isLoading = true;
 
-  final Color primaryColor = const Color(0xFF347338);
-  final Color darkColor = const Color(0xFF11261A);
+  // Palet Warna Sesuai Dashboard
+  final Color _backgroundColor = const Color(0xFFF8F9FD);
+  final Color _primaryBlue = const Color(0xFF3E8DE8);
+  final Color _darkTextColor = const Color(0xFF2D3035);
+  final Color _lightTextColor = Colors.grey.shade600;
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    _initializePage();
+  }
+
+  Future<void> _initializePage() async {
+    await _absenToday();
+    await _getCurrentLocation();
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _getCurrentLocation() async {
-    setState(() {
-      _currentAddress = "Mencari lokasi...";
-    });
-
+    setState(() => _currentAddress = "Mencari lokasi...");
     try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        setState(() => _currentAddress = "Layanan lokasi tidak aktif");
-        return;
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.deniedForever ||
-          permission == LocationPermission.denied) {
-        setState(() => _currentAddress = "Izin lokasi ditolak");
-        return;
-      }
-
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
+      Position position = await _determinePosition();
       List<Placemark> placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,
       );
 
-      setState(() {
-        _currentPosition = LatLng(position.latitude, position.longitude);
-        _marker = Marker(
-          markerId: const MarkerId("lokasi_saya"),
-          position: _currentPosition,
-          infoWindow: const InfoWindow(title: "Lokasi Anda"),
+      if (mounted) {
+        setState(() {
+          _currentPosition = LatLng(position.latitude, position.longitude);
+          _marker = Marker(
+            markerId: const MarkerId("lokasi_saya"),
+            position: _currentPosition,
+            infoWindow: const InfoWindow(title: "Lokasi Anda Saat Ini"),
+          );
+          _currentAddress = _formatAddress(placemarks.first);
+        });
+        _mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(_currentPosition, 16),
         );
-        if (placemarks.isNotEmpty) {
-          final place = placemarks.first;
-          _currentAddress =
-              "${place.name}, ${place.street}, ${place.locality}, ${place.country}";
-        } else {
-          _currentAddress = "Alamat tidak ditemukan";
-        }
-      });
-
-      _mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(_currentPosition, 16),
-      );
+      }
     } catch (e) {
-      setState(() => _currentAddress = "Gagal mendapatkan lokasi: $e");
+      if (mounted) setState(() => _currentAddress = e.toString());
     }
+  }
+
+  String _formatAddress(Placemark place) {
+    return "${place.street}, ${place.subLocality}, ${place.locality}, ${place.postalCode}";
   }
 
   Future<void> _absenToday() async {
     final response = await AbsenService.getAbsenToday();
-    if (response != null && response.data != null) {
+    if (mounted) {
       setState(() {
-        _absenTodayData = {
-          "status": response.data!.status ?? "Belum Absen",
-          "check_in": response.data!.checkInTime ?? "-",
-          "check_out": response.data!.checkOutTime ?? "Belum Absen",
-        };
-      });
-    } else {
-      setState(() {
-        _absenTodayData = {
-          "status": "Belum Absen",
-          "check_in": "-",
-          "check_out": "Belum Absen",
-        };
+        if (response != null && response.data != null) {
+          _absenTodayData = {
+            "check_in": response.data!.checkInTime ?? "--:--",
+            "check_out": response.data!.checkOutTime ?? "--:--",
+          };
+        } else {
+          _absenTodayData = {"check_in": "--:--", "check_out": "--:--"};
+        }
       });
     }
   }
 
-  Future<void> _checkIn() async {
+  Future<void> _performCheckIn() async {
     try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-
-      String address = "Alamat tidak ditemukan";
-      String locationName = "Lokasi Tidak Diketahui";
-      if (placemarks.isNotEmpty) {
-        final place = placemarks.first;
-        address =
-            "${place.street}, ${place.subLocality}, ${place.locality}, ${place.administrativeArea}, ${place.country}";
-        locationName = place.locality ?? "Lokasi Tidak Diketahui";
-      }
-
       AbsenCheckIn? result = await AbsenService.checkIn(
-        checkInLat: position.latitude,
-        checkInLng: position.longitude,
-        checkInLocation: locationName,
-        checkInAddress: address,
+        checkInLat: _currentPosition.latitude,
+        checkInLng: _currentPosition.longitude,
+        checkInLocation:
+            (await placemarkFromCoordinates(
+              _currentPosition.latitude,
+              _currentPosition.longitude,
+            )).first.locality ??
+            "N/A",
+        checkInAddress: _currentAddress,
       );
 
       if (!mounted) return;
 
       if (result != null) {
-        await _absenToday();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Check-in berhasil: ${result.message}")),
+          SnackBar(
+            content: Text("Check-in berhasil: ${result.message}"),
+            backgroundColor: Colors.green,
+          ),
         );
-        Navigator.pop(context, true); // balik ke Dashboard dengan "true"
+        Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Anda sudah melakukan absen hari ini")),
+          const SnackBar(
+            content: Text("Anda sudah melakukan absen hari ini"),
+            backgroundColor: Colors.orange,
+          ),
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  Future<void> _performCheckOut() async {
+    try {
+      AbsenCheckOut? result = await AbsenService.checkOut(
+        checkOutLat: _currentPosition.latitude,
+        checkOutLng: _currentPosition.longitude,
+        checkOutLocation:
+            (await placemarkFromCoordinates(
+              _currentPosition.latitude,
+              _currentPosition.longitude,
+            )).first.locality ??
+            "N/A",
+        checkOutAddress: _currentAddress,
+      );
+
+      if (!mounted) return;
+
+      if (result != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Check-out berhasil: ${result.message}"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Gagal melakukan check-out"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _backgroundColor,
       appBar: AppBar(
         title: const Text(
-          "Check In Lokasi",
+          "Lokasi Absen",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: _backgroundColor,
+        foregroundColor: _darkTextColor,
         elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // MAP
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: _currentPosition,
-                    zoom: 14,
-                  ),
-                  myLocationEnabled: true,
-                  myLocationButtonEnabled: true,
-                  markers: _marker != null ? {_marker!} : {},
-                  onMapCreated: (controller) {
-                    _mapController = controller;
-                  },
-                ),
-              ),
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: _currentPosition,
+              zoom: 14,
             ),
-            const SizedBox(height: 16),
+            myLocationEnabled: false,
+            myLocationButtonEnabled: false,
+            markers: _marker != null ? {_marker!} : {},
+            onMapCreated: (controller) {
+              _mapController = controller;
+            },
+          ),
+          if (_isLoading) const Center(child: CircularProgressIndicator()),
+          _buildInfoPanel(),
+        ],
+      ),
+    );
+  }
 
-            // ADDRESS
-            Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.location_on, color: primaryColor, size: 28),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        _currentAddress,
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: darkColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // CHECK IN BUTTON
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 3,
-                ),
-                onPressed: _checkIn,
-                icon: const Icon(Icons.login),
-                label: const Text("Check In Sekarang"),
-              ),
+  Widget _buildInfoPanel() {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Container(
+        padding: const EdgeInsets.all(20).copyWith(bottom: 30),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              spreadRadius: 5,
             ),
           ],
         ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Lokasi Anda Saat Ini",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: _darkTextColor,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.location_on, color: _primaryBlue, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _currentAddress,
+                    style: TextStyle(fontSize: 15, color: _lightTextColor),
+                  ),
+                ),
+                IconButton(
+                  onPressed: _getCurrentLocation,
+                  icon: const Icon(Icons.refresh),
+                  color: _primaryBlue,
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _buildActionButton(),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildActionButton() {
+    if (_absenTodayData == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final bool hasCheckedIn = _absenTodayData!['check_in'] != "--:--";
+    final bool hasCheckedOut = _absenTodayData!['check_out'] != "--:--";
+
+    String buttonText = "Check In Sekarang";
+    VoidCallback? onPressedAction = _performCheckIn;
+    Color buttonColor = _primaryBlue;
+    IconData icon = Icons.login;
+
+    if (hasCheckedIn && !hasCheckedOut) {
+      buttonText = "Check Out Sekarang";
+      onPressedAction = _performCheckOut;
+      buttonColor = Colors.orange;
+      icon = Icons.logout;
+    } else if (hasCheckedIn && hasCheckedOut) {
+      buttonText = "Absensi Hari Ini Selesai";
+      onPressedAction = null; // Tombol nonaktif
+      buttonColor = Colors.grey;
+      icon = Icons.check_circle;
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: buttonColor,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          elevation: 3,
+        ),
+        onPressed: onPressedAction,
+        icon: Icon(icon),
+        label: Text(buttonText),
+      ),
+    );
+  }
+
+  Future<Position> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Layanan lokasi tidak aktif.');
+    }
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Izin lokasi ditolak.');
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+        'Izin lokasi ditolak permanen, buka pengaturan untuk mengaktifkan.',
+      );
+    }
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
     );
   }
 }

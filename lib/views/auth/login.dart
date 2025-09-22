@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:tugas_ujk/api/auth_service.dart';
-import 'package:tugas_ujk/extension/navigaton.dart';
 import 'package:tugas_ujk/shared_preferenced/shared_preferenced.dart';
+import 'package:tugas_ujk/views/auth/forgot_password.dart';
 import 'package:tugas_ujk/views/auth/register_screen.dart';
+import 'package:tugas_ujk/views/dashboard_screen.dart';
+// Impor halaman forgot_password_screen yang sudah kita buat
 
 class LoginPage extends StatefulWidget {
   static const id = "/login";
@@ -40,14 +42,16 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const RegisterPage()),
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
       );
     } catch (e) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Login gagal: $e")));
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -56,7 +60,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background daun
+          // Background
           Positioned.fill(
             child: Image.asset(
               "assets/images/background.png",
@@ -70,14 +74,13 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 const SizedBox(height: 80),
 
-                // Logo Prasta
                 Center(
-                  child: Image.asset(
-                    "assets/images/logo_prasta_putih.png",
-                    height: 80,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
+                  // child: Image.asset(
+                  //   "assets/images/logo_prasta_putih.png",
+                  //   height: 80,
+                  //   width: double.infinity,
+                  //   fit: BoxFit.cover,
+                  // ),
                 ),
 
                 const SizedBox(height: 40),
@@ -88,27 +91,35 @@ class _LoginPageState extends State<LoginPage> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: const BoxDecoration(
-                    color: Colors.white, // Putih
+                    color: Color(0xffD9EAFD),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(40),
                       topRight: Radius.circular(40),
                     ),
                   ),
+
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Judul
                       const Text(
-                        "Masuk ke Akun",
+                        "Login",
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 50,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF347338), // Hijau utama
+                          color: Color(0xFF476EAE),
                         ),
                       ),
                       const SizedBox(height: 20),
+                      const Text(
+                        "Welcome Back, don't forget to login and absent!",
+                        style: TextStyle(
+                          fontSize: 20,
+                          // fontWeight: FontWeight.bold,
+                          color: Color(0xFF19183B),
+                        ),
+                      ),
+                      const SizedBox(height: 100),
 
-                      // Input Email
                       TextField(
                         controller: _emailController,
                         decoration: InputDecoration(
@@ -133,7 +144,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 15),
 
-                      // Input Password
                       TextField(
                         controller: _passwordController,
                         obscureText: obscure,
@@ -143,7 +153,7 @@ class _LoginPageState extends State<LoginPage> {
                           suffixIcon: IconButton(
                             icon: Icon(
                               obscure ? Icons.visibility_off : Icons.visibility,
-                              color: const Color(0xFF347338),
+                              color: Color(0xFFA5BF99),
                             ),
                             onPressed: () {
                               setState(() {
@@ -154,13 +164,13 @@ class _LoginPageState extends State<LoginPage> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: const BorderSide(
-                              color: Color(0xFFA5BF99),
+                              color: Color(0xFF647FBC),
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: const BorderSide(
-                              color: Color(0xFF347338),
+                              color: Color(0xFF647FBC),
                             ),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
@@ -168,42 +178,46 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 20),
 
-                      // Remember me & Lupa password
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: rememberMe,
-                                activeColor: const Color(0xFF347338),
-                                onChanged: (val) {
-                                  setState(() {
-                                    rememberMe = val ?? false;
-                                  });
-                                },
-                              ),
-                              const Text(
-                                "Ingat saya",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF11261A),
-                                ),
-                              ),
-                            ],
-                          ),
+                          // Row(
+                          //   children: [
+                          //     Checkbox(
+                          //       value: rememberMe,
+                          //       activeColor: const Color(0xFF647FBC),
+                          //       onChanged: (val) {
+                          //         setState(() {
+                          //           rememberMe = val ?? false;
+                          //         });
+                          //       },
+                          //     ),
+                          //     const Text(
+                          //       "Ingat saya",
+                          //       style: TextStyle(
+                          //         fontSize: 12,
+                          //         color: Color(0xFF647FBC),
+                          //       ),
+                          //     ),
+                          //   ],
+                          // ),
                           GestureDetector(
                             onTap: () {
-                              // Arahkan ke forgot password page
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const ForgotPasswordScreen(),
+                                ),
+                              );
                             },
                             child: const Text(
                               "Lupa Kata Sandi?",
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF347338),
+                                color: Color(0xFF57564F),
                               ),
                             ),
                           ),
@@ -211,14 +225,13 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Tombol login
                       SizedBox(
                         width: double.infinity,
                         height: 55,
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _login,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF347338),
+                            backgroundColor: const Color(0xFF124170),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -239,7 +252,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 15),
 
-                      // Belum punya akun?
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -249,14 +261,18 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              context.pushNamed(RegisterPage.id);
                               // Arahkan ke register page
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const RegisterPage(),
+                                ),
+                              );
                             },
                             child: const Text(
                               "Daftar di sini",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF347338),
+                                color: Color(0xFF124170),
                               ),
                             ),
                           ),

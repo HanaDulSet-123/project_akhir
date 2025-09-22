@@ -32,8 +32,7 @@ class _RegisterPageState extends State<RegisterPage> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
-  // State untuk Dropdown & Radio Button
-  String? _selectedJk; // Untuk menampung 'L' atau 'P'
+  String? _selectedJk;
 
   List<batch_model.Datum> _batches = [];
   int? _selectedBatchId;
@@ -187,20 +186,17 @@ class _RegisterPageState extends State<RegisterPage> {
           key: _formKey,
           child: Stack(
             children: [
-              // Background
-              Positioned.fill(
-                child: Image.asset(
-                  "assets/images/background.png",
-                  fit: BoxFit.cover,
-                ),
-              ),
-
-              // Konten utama
+              // Positioned.fill(
+              //   child: Image.asset(
+              //     "assets/images/background.png",
+              //     fit: BoxFit.cover,
+              //   ),
+              // ),
               SingleChildScrollView(
                 child: Column(
                   children: [
                     const SizedBox(height: 80),
-                    // Logo
+
                     Center(
                       child: Image.asset(
                         "assets/images/logo_prasta_putih.png",
@@ -211,7 +207,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 40),
 
-                    // Container putih melengkung
                     Container(
                       constraints: BoxConstraints(
                         minHeight: MediaQuery.of(context).size.height * 0.8,
@@ -226,10 +221,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ),
                       child: Column(
-                        // crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            "Bergabung dengan Prasta",
+                            "Bergabung di AbDul",
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -401,7 +395,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           // Input Training ID
                           DropdownButtonFormField<int>(
-                            value: _selectedTrainingId,
+                            initialValue: _selectedTrainingId,
                             isExpanded: true,
                             hint: Text(
                               _isTrainingsLoading
@@ -437,7 +431,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           // Input Batch ID
                           DropdownButtonFormField<int>(
-                            value: _selectedBatchId,
+                            initialValue: _selectedBatchId,
                             isExpanded: true,
                             hint: Text(
                               _isBatchesLoading ? "Memuat..." : "Pilih Batch",

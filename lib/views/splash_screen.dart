@@ -4,7 +4,6 @@ import 'package:lottie/lottie.dart';
 import 'package:tugas_ujk/extension/navigaton.dart';
 import 'package:tugas_ujk/shared_preferenced/shared_preferenced.dart';
 import 'package:tugas_ujk/views/auth/login.dart';
-import 'package:tugas_ujk/views/auth/register_screen.dart';
 import 'package:tugas_ujk/views/dashboard_screen.dart';
 import 'package:tugas_ujk/widgets/appimage.dart';
 
