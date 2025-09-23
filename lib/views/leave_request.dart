@@ -246,40 +246,40 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
               const SizedBox(height: 20),
 
               // Leave balance info
-              Card(
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Your Leave Balance',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildLeaveBalanceItem('Annual Leave', '12 days'),
-                          _buildLeaveBalanceItem('Sick Leave', '8 days'),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildLeaveBalanceItem('Personal Leave', '5 days'),
-                          _buildLeaveBalanceItem('Emergency', '3 days'),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              // Card(
+              //   elevation: 2,
+              //   child: Padding(
+              //     padding: const EdgeInsets.all(16.0),
+              //     child: Column(
+              //       crossAxisAlignment: CrossAxisAlignment.start,
+              //       children: [
+              //         const Text(
+              //           'Your Leave Balance',
+              //           style: TextStyle(
+              //             fontSize: 16,
+              //             fontWeight: FontWeight.bold,
+              //           ),
+              //         ),
+              //         const SizedBox(height: 12),
+              //         Row(
+              //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //           children: [
+              //             _buildLeaveBalanceItem('Annual Leave', '12 days'),
+              //             _buildLeaveBalanceItem('Sick Leave', '8 days'),
+              //           ],
+              //         ),
+              //         const SizedBox(height: 8),
+              //         Row(
+              //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //           children: [
+              //             _buildLeaveBalanceItem('Personal Leave', '5 days'),
+              //             _buildLeaveBalanceItem('Emergency', '3 days'),
+              //           ],
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),

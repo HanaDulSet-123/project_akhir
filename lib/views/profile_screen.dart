@@ -4,9 +4,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-// Ganti dengan path project Anda yang benar
 import 'package:tugas_ujk/api/auth_service.dart';
+import 'package:tugas_ujk/extension/navigaton.dart';
 import 'package:tugas_ujk/models/get_user_model.dart';
+import 'package:tugas_ujk/views/settings.dart';
 import 'package:tugas_ujk/views/edit_profile.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -24,12 +25,6 @@ class _ProfilePageState extends State<ProfilePage> {
   late Future<GetUserModel> _futureProfile;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
-
-  // Palet Warna Sesuai Dashboard
-  final Color _backgroundColor = const Color(0xFFF8F9FD);
-  final Color _primaryBlue = const Color(0xFF3E8DE8);
-  final Color _darkTextColor = const Color(0xFF2D3035);
-  final Color _lightTextColor = Colors.grey.shade600;
 
   @override
   void initState() {
@@ -90,11 +85,17 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _showSnackbar(String message, {bool isError = false}) {
+    final theme = Theme.of(context);
+    final bg = isError ? theme.colorScheme.error : theme.colorScheme.primary;
+    final txtColor = isError
+        ? theme.colorScheme.onError
+        : theme.colorScheme.onPrimary;
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message),
-          backgroundColor: isError ? Colors.red : Colors.green,
+          content: Text(message, style: TextStyle(color: txtColor)),
+          backgroundColor: bg,
           duration: const Duration(seconds: 2),
         ),
       );
@@ -103,8 +104,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: _backgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
         children: [
           FutureBuilder<GetUserModel>(
@@ -112,16 +115,25 @@ class _ProfilePageState extends State<ProfilePage> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting &&
                   !_isLoading) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(
+                  child: CircularProgressIndicator(
+                    color: theme.colorScheme.primary,
+                  ),
+                );
               } else if (snapshot.hasError) {
                 return Center(
                   child: Text(
                     "Error: ${snapshot.error}",
-                    style: const TextStyle(color: Colors.red),
+                    style: TextStyle(color: theme.colorScheme.error),
                   ),
                 );
               } else if (!snapshot.hasData || snapshot.data?.data == null) {
-                return const Center(child: Text("Data tidak ditemukan"));
+                return Center(
+                  child: Text(
+                    "Data tidak ditemukan",
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                  ),
+                );
               }
 
               final user = snapshot.data!.data!;
@@ -132,11 +144,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   vertical: 30,
                 ),
                 children: [
-                  _buildProfileHeader(user),
+                  _buildProfileHeader(context, user),
                   const SizedBox(height: 32),
-                  _buildAccountInfoCard(user),
+                  _buildAccountInfoCard(context, user),
                   const SizedBox(height: 24),
-                  _buildSettingsCard(user), // <-- Kirim data user
+                  _buildSettingsCard(context, user), // <-- Kirim data user
                 ],
               );
             },
@@ -144,8 +156,10 @@ class _ProfilePageState extends State<ProfilePage> {
           if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.5),
-              child: const Center(
-                child: CircularProgressIndicator(color: Colors.white),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
               ),
             ),
         ],
@@ -153,7 +167,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileHeader(Data user) {
+  Widget _buildProfileHeader(BuildContext context, Data user) {
+    final theme = Theme.of(context);
     final name =
         user.name
             ?.split(' ')
@@ -172,12 +187,16 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               CircleAvatar(
                 radius: 60,
-                backgroundColor: Colors.grey[200],
+                backgroundColor: theme.colorScheme.surfaceVariant,
                 backgroundImage: user.profilePhotoUrl != null
                     ? NetworkImage(user.profilePhotoUrl!)
                     : null,
                 child: user.profilePhotoUrl == null
-                    ? Icon(Icons.person, size: 60, color: _lightTextColor)
+                    ? Icon(
+                        Icons.person,
+                        size: 60,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      )
                     : null,
               ),
               Positioned(
@@ -187,10 +206,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   onTap: _pickImage,
                   child: CircleAvatar(
                     radius: 20,
-                    backgroundColor: _primaryBlue,
-                    child: const Icon(
+                    backgroundColor: theme.colorScheme.primary,
+                    child: Icon(
                       Icons.camera_alt,
-                      color: Colors.white,
+                      color: theme.colorScheme.onPrimary,
                       size: 20,
                     ),
                   ),
@@ -202,32 +221,41 @@ class _ProfilePageState extends State<ProfilePage> {
         const SizedBox(height: 16),
         Text(
           name,
-          style: TextStyle(
-            fontSize: 22,
+          style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: _darkTextColor,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           user.email ?? '-',
-          style: TextStyle(fontSize: 16, color: _lightTextColor),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildAccountInfoCard(Data user) {
+  Widget _buildAccountInfoCard(BuildContext context, Data user) {
     return _buildCard(
+      context,
       title: "Informasi Akun",
       children: [
-        _buildInfoRow(Icons.badge_outlined, "Batch", user.batchKe ?? "-"),
         _buildInfoRow(
+          context,
+          Icons.badge_outlined,
+          "Batch",
+          user.batchKe ?? "-",
+        ),
+        _buildInfoRow(
+          context,
           Icons.school_outlined,
           "Pelatihan",
           user.trainingTitle ?? "-",
         ),
         _buildInfoRow(
+          context,
           Icons.person_outline,
           "Jenis Kelamin",
           user.jenisKelamin ?? "-",
@@ -236,29 +264,60 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildSettingsCard(Data user) {
-    // <-- Terima data user
+  Widget _buildSettingsCard(BuildContext context, Data user) {
     return _buildCard(
+      context,
       title: "Pengaturan & Lainnya",
       children: [
         ListTile(
-          leading: Icon(Icons.edit_outlined, color: _darkTextColor),
+          leading: Icon(
+            Icons.edit_outlined,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           title: Text(
             "Edit Profil",
             style: TextStyle(
-              color: _darkTextColor,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w500,
             ),
           ),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () =>
-              _navigateToEditProfile(user), // <-- Panggil fungsi navigasi
+          trailing: Icon(
+            Icons.chevron_right,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          onTap: () => _navigateToEditProfile(user),
         ),
         ListTile(
-          leading: const Icon(Icons.logout, color: Colors.red),
-          title: const Text(
+          leading: Icon(
+            Icons.settings,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          title: Text(
+            "Pengaturan",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          onTap: () {
+            context.pushNamed(SettingsPresensi.id);
+          },
+        ),
+        ListTile(
+          leading: Icon(
+            Icons.logout,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          title: Text(
             "Keluar",
-            style: TextStyle(color: Colors.red, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.error,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           onTap: () async {
             await AuthenticationAPI.logout();
@@ -271,15 +330,21 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildCard({required String title, required List<Widget> children}) {
+  Widget _buildCard(
+    BuildContext context, {
+    required String title,
+    required List<Widget> children,
+  }) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: theme.shadowColor.withOpacity(0.08),
             spreadRadius: 2,
             blurRadius: 10,
             offset: const Offset(0, 5),
@@ -291,10 +356,8 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
           Text(
             title,
-            style: TextStyle(
-              fontSize: 16,
+            style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: _darkTextColor,
             ),
           ),
           const Divider(height: 24),
@@ -304,19 +367,32 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildInfoRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Icon(icon, color: _lightTextColor, size: 20),
+          Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 20),
           const SizedBox(width: 16),
-          Text(label, style: TextStyle(color: _lightTextColor, fontSize: 14)),
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontSize: 14,
+            ),
+          ),
           const Spacer(),
           Text(
             value,
-            style: TextStyle(
-              color: _darkTextColor,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w600,
               fontSize: 14,
             ),

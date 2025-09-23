@@ -42,12 +42,10 @@ class _Day16SplashScreenState extends State<Day16SplashScreen> {
       builder: (context, child) {
         return Scaffold(
           body: SizedBox.expand(
-            child: Lottie.asset(
+            child: Image.asset(
               AppImage.Background,
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height,
-              repeat: true,
-              animate: true,
               fit: BoxFit.fill,
             ),
           ),

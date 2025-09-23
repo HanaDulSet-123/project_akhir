@@ -137,7 +137,7 @@ class _LoginPageState extends State<LoginPage>
     return Column(
       children: [
         // Ganti dengan logo perusahaan Anda
-        // Image.asset("assets/images/logo_perusahaan.png", height: 80),
+        // Image.asset("assets/images/logo.jpg", height: 80),
         const Icon(Icons.lock_open_rounded, size: 80, color: Color(0xFF124170)),
         const SizedBox(height: 24),
         const Text(

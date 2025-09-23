@@ -70,11 +70,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   late Future<GetUserModel> _profileFuture;
   Map<String, dynamic>? _absenTodayData;
 
-  final Color _backgroundColor = const Color(0xFFF8F9FD);
-  final Color _primaryBlue = const Color(0xFF3E8DE8);
-  final Color _darkTextColor = const Color(0xFF2D3035);
-  final Color _lightTextColor = Colors.grey.shade600;
-
   @override
   void initState() {
     super.initState();
@@ -112,40 +107,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ===== 2. PERBAIKI BAGIAN INI =====
+    // Ambil warna dari theme
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     final pages = [
       _buildDashboardPage(),
-      // Berikan method _refreshProfile ke ProfilePage
       ProfilePage(onProfileUpdated: _refreshProfile),
     ];
 
     return Scaffold(
-      backgroundColor: _backgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: _backgroundColor,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         centerTitle: true,
         title: Text(
           _currentIndex == 0 ? "Dashboard" : "Profile",
           style: TextStyle(
-            color: _primaryBlue,
+            color: colorScheme.primary,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
-        // leading: _currentIndex == 0
-        //     ? IconButton(
-        //         icon: Icon(Icons.arrow_back, color: _darkTextColor),
-        //         onPressed: () async {
-        //           await AuthenticationAPI.logout();
-        //           if (mounted) {
-        //             Navigator.pushReplacementNamed(context, '/login');
-        //           }
-        //         },
-        //       )
-        //     : null,
-        // automaticallyImplyLeading:
-        //     _currentIndex != 0,
       ),
       body: pages[_currentIndex],
       bottomNavigationBar: BottomNav(
@@ -153,12 +137,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onTabItemSelected: (i) {
           setState(() => _currentIndex = i);
         },
-        primaryColor: _primaryBlue,
+        primaryColor: colorScheme.primary,
       ),
     );
   }
 
   Widget _buildDashboardPage() {
+    final theme = Theme.of(context);
+    final textColor = theme.colorScheme.onSurface;
+
     final checkIn = _absenTodayData?['check_in'] ?? "--:--";
     final checkOut = _absenTodayData?['check_out'] ?? "--:--";
     final status =
@@ -177,7 +164,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Text(
           "Quick Access",
           style: TextStyle(
-            color: _darkTextColor,
+            color: textColor,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -189,6 +176,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildHeader() {
+    final theme = Theme.of(context);
+    final textColor = theme.colorScheme.onSurface;
+
     return FutureBuilder<GetUserModel>(
       future: _profileFuture,
       builder: (context, snapshot) {
@@ -198,7 +188,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (snapshot.hasError ||
             !snapshot.hasData ||
             snapshot.data?.data == null) {
-          // Tampilan jika error atau tidak ada data
           return const Text("Gagal memuat data user");
         }
 
@@ -223,7 +212,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 RichText(
                   text: TextSpan(
-                    style: TextStyle(fontSize: 22, color: _darkTextColor),
+                    style: TextStyle(fontSize: 22, color: textColor),
                     children: [
                       const TextSpan(text: "Hello, "),
                       TextSpan(
@@ -239,7 +228,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Icon(
                       Icons.watch_later_outlined,
-                      color: _lightTextColor,
+                      color: theme.hintColor,
                       size: 16,
                     ),
                     const SizedBox(width: 6),
@@ -250,7 +239,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             CircleAvatar(
               radius: 30,
-              backgroundColor: Colors.grey[200],
+              backgroundColor: theme.colorScheme.surfaceVariant,
               backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
                   ? NetworkImage(imageUrl)
                   : null,
@@ -261,7 +250,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           : "U",
                       style: TextStyle(
                         fontSize: 22,
-                        color: _lightTextColor,
+                        color: theme.hintColor,
                         fontWeight: FontWeight.bold,
                       ),
                     )
@@ -274,16 +263,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildAttendanceCard(String status, String checkIn, String checkOut) {
-    // ... (Tidak ada perubahan di sini) ...
-    final bool isCompleted = status == "Completed";
+    final theme = Theme.of(context);
+    final isCompleted = status == "Completed";
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.secondaryContainer,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.05),
             spreadRadius: 2,
             blurRadius: 10,
             offset: const Offset(0, 5),
@@ -298,7 +288,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 "Attendance Today",
                 style: TextStyle(
-                  color: _darkTextColor,
+                  color: theme.colorScheme.onSecondaryContainer,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -335,7 +325,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Divider(color: Colors.grey[200]),
+          Divider(color: theme.dividerColor),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -350,14 +340,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildTimeColumn(String title, String time) {
+    final theme = Theme.of(context);
     return Column(
       children: [
-        Text(title, style: TextStyle(color: _lightTextColor, fontSize: 14)),
+        Text(title, style: TextStyle(color: theme.hintColor, fontSize: 14)),
         const SizedBox(height: 8),
         Text(
           time,
           style: TextStyle(
-            color: _darkTextColor,
+            color: theme.colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -375,21 +366,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       mainAxisSpacing: 16,
       childAspectRatio: 1.25,
       children: [
-        _buildQuickAccessCard(
-          "Check In/Out",
-          Icons.login_outlined,
-          const Color(0xFF3E8DE8),
-          () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const MapCheckInPage()),
-            ).then((_) => _absenToday());
-          },
-        ),
+        _buildQuickAccessCard("Check In/Out", Icons.login_outlined, () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MapCheckInPage()),
+          ).then((_) => _absenToday());
+        }),
         _buildQuickAccessCard(
           "Leave Request",
           Icons.document_scanner_outlined,
-          const Color(0xFF3E8DE8),
           () {
             Navigator.push(
               context,
@@ -399,30 +384,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
             );
           },
         ),
-        _buildQuickAccessCard(
-          "Statistics",
-          Icons.bar_chart_outlined,
-          const Color(0xFF2D3035),
-          () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ChartScreen()),
-            );
-          },
-        ),
-        _buildQuickAccessCard(
-          "History",
-          Icons.history_outlined,
-          const Color(0xFFF2994A),
-          () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AttendanceHistoryScreen(),
-              ),
-            );
-          },
-        ),
+        _buildQuickAccessCard("Statistics", Icons.bar_chart_outlined, () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ChartScreen()),
+          );
+        }),
+        _buildQuickAccessCard("History", Icons.history_outlined, () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AttendanceHistoryScreen()),
+          );
+        }),
       ],
     );
   }
@@ -430,37 +403,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildQuickAccessCard(
     String title,
     IconData icon,
-    Color iconColor,
     VoidCallback onTap,
   ) {
-    // ... (Tidak ada perubahan di sini) ...
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.08),
-              spreadRadius: 2,
-              blurRadius: 10,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: iconColor, size: 32),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: TextStyle(
-                color: _darkTextColor,
-                fontWeight: FontWeight.w600,
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      elevation: 2,
+      color: colorScheme.surfaceVariant, // warna variant sesuai tema
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 32,
+                color: colorScheme.primary, // ikut aksen tema
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

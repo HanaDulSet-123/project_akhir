@@ -41,7 +41,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         );
 
-        // Arahkan ke halaman reset password sambil mengirim email
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => ResetPasswordScreen(email: email),

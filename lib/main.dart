@@ -1,46 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:tugas_ujk/shared_preferenced/shared_preferenced.dart';
+import 'package:tugas_ujk/utils/theme.dart'; // ThemeProvider, lightTheme, darkTheme
+import 'package:tugas_ujk/views/about.dart';
 import 'package:tugas_ujk/views/auth/login.dart';
 import 'package:tugas_ujk/views/auth/register_screen.dart';
+import 'package:tugas_ujk/views/settings.dart';
 import 'package:tugas_ujk/views/dashboard_screen.dart';
 import 'package:tugas_ujk/views/splash_screen.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // penting untuk SharedPreferences
+  await PreferenceHandler.getThemeMode(); // ambil dari shared_pref
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) =>
+          ThemeProvider(), // otomatis load theme dari SharedPreferences
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      initialRoute: Day16SplashScreen.id,
-      routes: {
-        // '/': (context) => const MyHomePage(title: 'Flutter Demo Home Page'),
-        Day16SplashScreen.id: (context) => Day16SplashScreen(),
-        LoginPage.id: (context) => const LoginPage(),
-        RegisterPage.id: (context) => const RegisterPage(),
-        DashboardScreen.id: (context) => const DashboardScreen(),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Flutter Demo',
+
+          // ====== Global Theme ======
+          theme: lightTheme, // mode terang → biru soft
+          darkTheme: darkTheme, // mode gelap → pink soft
+          themeMode: themeProvider.themeMode, // ambil dari provider
+          // ====== Routing ======
+          initialRoute: Day16SplashScreen.id,
+          routes: {
+            Day16SplashScreen.id: (context) => Day16SplashScreen(),
+            LoginPage.id: (context) => const LoginPage(),
+            RegisterPage.id: (context) => const RegisterPage(),
+            AboutAPPScreen.id: (context) => const AboutAPPScreen(),
+            DashboardScreen.id: (context) => const DashboardScreen(),
+            SettingsPresensi.id: (context) => const SettingsPresensi(),
+          },
+        );
       },
     );
   }
