@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:tugas_ujk/api/auth_service.dart';
 import 'package:tugas_ujk/shared_preferenced/shared_preferenced.dart';
 import 'package:tugas_ujk/views/auth/forgot_password.dart';
@@ -21,7 +22,7 @@ class _LoginPageState extends State<LoginPage>
   bool _isLoading = false;
   bool obscure = true;
 
-  // Controller untuk animasi
+  // Animasi fade halaman
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -36,8 +37,6 @@ class _LoginPageState extends State<LoginPage>
       begin: 0.0,
       end: 1.0,
     ).animate(_animationController);
-
-    // Memulai animasi saat halaman dimuat
     _animationController.forward();
   }
 
@@ -49,7 +48,7 @@ class _LoginPageState extends State<LoginPage>
     super.dispose();
   }
 
-  // --- LOGIKA LOGIN (TIDAK DIUBAH) ---
+  // --- LOGIKA LOGIN ---
   Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -68,17 +67,37 @@ class _LoginPageState extends State<LoginPage>
       await PreferenceHandler.saveLogin();
 
       if (!mounted) return;
+
+      // Tutup loading di tombol
+      setState(() => _isLoading = false);
+
+      // Tampilkan Lottie success
+      showDialog(
+        context: context,
+        barrierDismissible: false, // tidak bisa ditutup manual
+        builder: (_) => Center(
+          child: Lottie.asset(
+            'assets/lottie/success.json', // ganti dengan file animasi success kamu
+            repeat: false,
+          ),
+        ),
+      );
+
+      // Delay 3 detik lalu pindah ke dashboard
+      await Future.delayed(const Duration(seconds: 3));
+
+      if (!mounted) return;
+      Navigator.of(context).pop(); // tutup dialog Lottie
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const DashboardScreen()),
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Login gagal: $e")));
-    } finally {
       if (mounted) {
         setState(() => _isLoading = false);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Login gagal: $e")));
       }
     }
   }
@@ -88,7 +107,6 @@ class _LoginPageState extends State<LoginPage>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        // Latar belakang dengan gradasi biru profesional
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFE9F2FF), Color(0xFFD9EAFD)],
@@ -106,19 +124,14 @@ class _LoginPageState extends State<LoginPage>
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // --- Header ---
                     _buildHeader(),
                     const SizedBox(height: 48),
-
-                    // --- Form Input ---
                     _buildEmailField(),
                     const SizedBox(height: 16),
                     _buildPasswordField(),
                     const SizedBox(height: 16),
                     _buildForgotPasswordLink(),
                     const SizedBox(height: 32),
-
-                    // --- Tombol Aksi ---
                     _buildLoginButton(),
                     const SizedBox(height: 24),
                     _buildRegisterLink(),
@@ -132,12 +145,9 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  // Widget helper untuk menjaga kerapian kode
   Widget _buildHeader() {
     return Column(
       children: [
-        // Ganti dengan logo perusahaan Anda
-        // Image.asset("assets/images/logo.jpg", height: 80),
         const Icon(Icons.lock_open_rounded, size: 80, color: Color(0xFF124170)),
         const SizedBox(height: 24),
         const Text(
@@ -248,12 +258,12 @@ class _LoginPageState extends State<LoginPage>
           shadowColor: Colors.black.withOpacity(0.2),
         ),
         child: _isLoading
-            ? const SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 3,
+            ? SizedBox(
+                height: 40,
+                width: 40,
+                child: Lottie.asset(
+                  'assets/lottie/loading.json',
+                  fit: BoxFit.cover,
                 ),
               )
             : const Text(
