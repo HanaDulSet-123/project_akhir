@@ -27,6 +27,10 @@ class _MapCheckInPageState extends State<MapCheckInPage> {
   String _currentAddress = "Mendapatkan lokasi...";
   bool _isLoading = true;
 
+  // Lokasi PPKDJP (contoh titik acuan)
+  final LatLng _officeLocation = const LatLng(-6.200000, 106.816666);
+  final double _maxDistance = 50; // batas 50 meter
+
   // Palet Warna Sesuai Dashboard
   final Color _backgroundColor = const Color(0xFFF8F9FD);
   final Color _primaryBlue = const Color(0xFF3E8DE8);
@@ -98,6 +102,30 @@ class _MapCheckInPageState extends State<MapCheckInPage> {
   }
 
   Future<void> _performCheckIn() async {
+    // Hitung jarak dari lokasi kantor
+    double distance = Geolocator.distanceBetween(
+      _currentPosition.latitude,
+      _currentPosition.longitude,
+      _officeLocation.latitude,
+      _officeLocation.longitude,
+    );
+
+    if (distance > _maxDistance) {
+      String distText = distance < 1000
+          ? "${distance.toStringAsFixed(0)} m"
+          : "${(distance / 1000).toStringAsFixed(2)} km";
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "⚠️ Anda terlalu jauh dari lokasi PPKDJP (Jarak: $distText)",
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     try {
       AbsenCheckIn? result = await AbsenService.checkIn(
         checkInLat: _currentPosition.latitude,
@@ -138,6 +166,30 @@ class _MapCheckInPageState extends State<MapCheckInPage> {
   }
 
   Future<void> _performCheckOut() async {
+    // Hitung jarak dari lokasi kantor
+    double distance = Geolocator.distanceBetween(
+      _currentPosition.latitude,
+      _currentPosition.longitude,
+      _officeLocation.latitude,
+      _officeLocation.longitude,
+    );
+
+    if (distance > _maxDistance) {
+      String distText = distance < 1000
+          ? "${distance.toStringAsFixed(0)} m"
+          : "${(distance / 1000).toStringAsFixed(2)} km";
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "⚠️ Anda terlalu jauh dari lokasi PPKDJP (Jarak: $distText)",
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     try {
       AbsenCheckOut? result = await AbsenService.checkOut(
         checkOutLat: _currentPosition.latitude,
