@@ -372,18 +372,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
             MaterialPageRoute(builder: (_) => const MapCheckInPage()),
           ).then((_) => _absenToday());
         }),
-        _buildQuickAccessCard(
-          "Leave Request",
-          Icons.document_scanner_outlined,
-          () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const LeaveRequestScreen(),
-              ),
-            );
-          },
-        ),
+        // _buildQuickAccessCard(
+        //   "Leave Request",
+        //   Icons.document_scanner_outlined,
+        //   () {
+        //     Navigator.push(
+        //       context,
+        //       MaterialPageRoute(
+        //         builder: (context) => const LeaveRequestScreen(),
+        //       ),
+        //     );
+        //   },
+        // ),
         _buildQuickAccessCard("Statistics", Icons.bar_chart_outlined, () {
           Navigator.push(
             context,
