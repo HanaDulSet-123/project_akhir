@@ -7,8 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:tugas_ujk/api/auth_service.dart';
 import 'package:tugas_ujk/extension/navigaton.dart';
 import 'package:tugas_ujk/models/get_user_model.dart';
-import 'package:tugas_ujk/views/settings.dart';
 import 'package:tugas_ujk/views/edit_profile.dart';
+import 'package:tugas_ujk/views/settings.dart';
 
 class ProfilePage extends StatefulWidget {
   static const id = '/profile';
@@ -187,7 +187,7 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               CircleAvatar(
                 radius: 60,
-                backgroundColor: theme.colorScheme.surfaceVariant,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
                 backgroundImage: user.profilePhotoUrl != null
                     ? NetworkImage(user.profilePhotoUrl!)
                     : null,
@@ -378,23 +378,34 @@ class _ProfilePageState extends State<ProfilePage> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 20),
           const SizedBox(width: 16),
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 14,
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontSize: 14,
+              ),
             ),
           ),
-          const Spacer(),
-          Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 3,
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              softWrap: true,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
             ),
           ),
         ],

@@ -5,8 +5,8 @@ import 'package:tugas_ujk/utils/theme.dart'; // ThemeProvider, lightTheme, darkT
 import 'package:tugas_ujk/views/about.dart';
 import 'package:tugas_ujk/views/auth/login.dart';
 import 'package:tugas_ujk/views/auth/register_screen.dart';
-import 'package:tugas_ujk/views/settings.dart';
 import 'package:tugas_ujk/views/dashboard_screen.dart';
+import 'package:tugas_ujk/views/settings.dart';
 import 'package:tugas_ujk/views/splash_screen.dart';
 
 void main() async {

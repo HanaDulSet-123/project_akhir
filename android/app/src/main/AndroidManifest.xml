@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
     <application
-        android:label="tugas_ujk"
+        android:label="AbDul"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
